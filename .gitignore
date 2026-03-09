@@ -22,16 +22,23 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 hal-*.tar
 
-# If NPM crashes, it generates a log, let's ignore it too.
-npm-debug.log
-
-# The directory NPM downloads your dependencies sources to.
-/assets/node_modules/
-
-# Since we are building assets from assets/,
-# we ignore priv/static. You may want to comment
-# this depending on your deployment strategy.
-/priv/static/
-
 # Ignore elixir_ls
 .elixir_ls
+.elixir-tools
+
+# OS files
+.DS_Store
+
+# Removed in modernisation — ignore remnants on disk
+/assets/
+/priv/
+/test/
+/lib/hal_web/
+/lib/hal_web.ex
+/lib/hal/state.ex
+/lib/hal/mailer.ex
+/config/prod.secret.exs
+/config/releases.exs
+/.tool-versions
+/Makefile
+/mix.lock
