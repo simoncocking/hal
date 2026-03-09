@@ -5,7 +5,7 @@ defmodule HalWeb.PacketLive do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div>
       <pre>
       <%= for packet <- @packets, do: "#{inspect(packet)}\n" %>

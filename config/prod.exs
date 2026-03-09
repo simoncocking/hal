@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
@@ -10,26 +10,23 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :hal, HalWeb.Endpoint,
-  url: [host: "rs485.local", port: 80],
+  url: [host: "rs485.local", port: 8080],
   cache_static_manifest: "priv/static/cache_manifest.json"
-
-# Do not print debug messages in production
-config :logger, level: :info
 
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
 # to the previous section and set your `:url` port to 443:
 #
-#     config :hal, HalWeb.Endpoint,
-#       ...
+#     config :hal_web, HalWeb.Endpoint,
+#       ...,
 #       url: [host: "example.com", port: 443],
 #       https: [
+#         ...,
 #         port: 443,
 #         cipher_suite: :strong,
 #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-#         certfile: System.get_env("SOME_APP_SSL_CERT_PATH"),
-#         transport_options: [socket_opts: [:inet6]]
+#         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
 #       ]
 #
 # The `cipher_suite` is set to `:strong` to support only the
@@ -45,7 +42,10 @@ config :logger, level: :info
 # We also recommend setting `force_ssl` in your endpoint, ensuring
 # no data is ever sent via http, always redirecting to https:
 #
-#     config :hal, HalWeb.Endpoint,
+#     config :hal_web, HalWeb.Endpoint,
 #       force_ssl: [hsts: true]
 #
 # Check `Plug.SSL` for all available options in `force_ssl`.
+
+# Do not print debug messages in production
+config :logger, level: :info

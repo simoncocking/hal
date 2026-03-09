@@ -1,9 +1,9 @@
 SHELL := bash
+export
 
-.EXPORT_ALL_VARIABLES:
-	MIX_ENV = prod
-	NODE_ENV = production
-	SECRET_KEY_BASE = $$(mix phx.gen.secret)
+MIX_ENV := prod
+NODE_ENV := production
+SECRET_KEY_BASE := $$(mix phx.gen.secret)
 
 release:
 	mix deps.get --only prod

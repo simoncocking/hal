@@ -98,6 +98,6 @@ defmodule Hal.Rs485 do
   defp put_state(tuples) do
     tuples
     |> Enum.map(fn {topic, val} -> {"power/#{topic}", val} end)
-    |> State.put_values()
+    |> State.put_value(publish: true)
   end
 end

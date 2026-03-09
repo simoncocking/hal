@@ -1,61 +1,65 @@
 defmodule Hal.State do
   use GenServer, restart: :permanent
+  alias __MODULE__
   alias MQTT.Client
   alias Phoenix.PubSub
 
+  @buttons Application.compile_env!(:hal, :buttons)
+  defp buttons, do: @buttons
+
   @type t :: map()
+  @type value :: {binary(), any()}
 
   @spec start_link(map()) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    GenServer.start_link(State, args, name: State)
   end
 
   @impl true
-  @spec init(%{broker: String.t(), publish_interval: non_neg_integer}) :: {:ok, t()}
-  def init(%{broker: broker, publish_interval: interval}) do
+  @spec init(%{broker: String.t()}) :: {:ok, t()}
+  def init(%{broker: broker}) do
     {:ok, mqtt, false} = Client.connect(%{transport: {:tcp, %{host: broker}}})
     {:ok, _topics} = Client.subscribe(mqtt, ["tank/#", "power/pv/#"])
-    :timer.send_interval(interval, :publish)
-    {:ok, %{private: %{mqtt: mqtt}}}
+    {:ok, %{buttons: buttons(), private: %{mqtt: mqtt}}}
   end
 
   @spec get_state :: t()
-  def get_state(), do: GenServer.call(__MODULE__, :get_state)
+  def get_state(), do: GenServer.call(State, :get_state)
 
   @spec get_value(String.t()) :: any
-  def get_value(key), do: GenServer.call(__MODULE__, key)
+  def get_value(key), do: GenServer.call(State, key)
 
-  @spec put_value(String.t(), any) :: :ok
-  def put_value(key, value), do: GenServer.cast(__MODULE__, {key, value})
+  @spec put_value(
+          value :: value() | list(value()),
+          opts :: keyword()
+        ) :: :ok
+  def put_value(value, opts \\ []), do: GenServer.cast(State, {:put, List.wrap(value), opts})
 
-  @spec put_value(t(), String.t(), any) :: t()
-  def put_value(state, key, value) do
+  @spec put_value(
+          state :: t(),
+          value :: value(),
+          opts :: keyword()
+        ) :: t()
+  defp put_value(state, {key, value}, opts) do
     key
     |> String.split("/")
     |> Enum.map(&String.to_atom/1)
     |> Enum.reverse()
     |> Enum.reduce(value, &%{&1 => &2})
-    |> (&merge(state, &1)).()
+    |> then(&merge(state, &1))
+    |> tap(&publish(&1, {key, value}, opts[:publish]))
+    |> tap(&PubSub.broadcast(Hal.PubSub, "state", public_state(&1)))
   end
 
-  @spec put_values(list({String.t(), any})) :: list(:ok)
-  def put_values(values) do
-    for {key, value} <- values, do: put_value(key, value)
+  defp publish(state, {key, value}, true) do
+    Client.publish(state.private.mqtt, key, "#{value}")
   end
+
+  defp publish(_state, _value, _publish), do: :ok
 
   @impl true
   def handle_info({:mqtt_client, _pid, {:publish, topic, message, _}}, state) do
-    {:noreply, put_value(state, topic, message), :hibernate}
-  end
-
-  def handle_info(:publish, state) do
-    public = public_state(state)
-    :ok = PubSub.broadcast(Hal.PubSub, "state", public)
-
-    for {topic, value} <- flatten_map(public),
-        do: Client.publish(state.private.mqtt, topic, "#{value}")
-
-    {:noreply, state, :hibernate}
+    {:noreply, put_value(state, {topic, message}, publish: false), :hibernate}
   end
 
   @impl true
@@ -66,13 +70,14 @@ defmodule Hal.State do
     |> String.split("/")
     |> Enum.map(&String.to_atom/1)
     |> Enum.reduce(public_state(state), &Map.get(&2, &1))
-    |> (&{:reply, &1, state, :hibernate}).()
+    |> then(&{:reply, &1, state, :hibernate})
   rescue
     _ -> {:reply, nil, state}
   end
 
   @impl true
-  def handle_cast({key, value}, state), do: {:noreply, put_value(state, key, value), :hibernate}
+  def handle_cast({:put, values, opts}, state),
+    do: {:noreply, Enum.reduce(values, state, &put_value(&2, &1, opts)), :hibernate}
 
   @spec merge(map, map) :: map
   defp merge(map1, map2) do
@@ -90,18 +95,6 @@ defmodule Hal.State do
         v2
     end)
   end
-
-  @spec flatten_map(map, String.t()) :: list(tuple)
-  defp flatten_map(map, prefix \\ "") do
-    Enum.reduce(map, [], fn
-      {k, v}, acc when is_map(v) -> [flatten_map(v, form_key(prefix, k)) | acc]
-      {k, v}, acc -> [{form_key(prefix, k), v} | acc]
-    end)
-    |> Enum.reverse()
-    |> List.flatten()
-  end
-
-  defp form_key(prefix, key), do: String.replace_leading("#{prefix}/#{key}", "/", "")
 
   defp public_state(state), do: Map.delete(state, :private)
 end
