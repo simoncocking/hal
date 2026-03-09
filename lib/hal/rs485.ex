@@ -1,9 +1,18 @@
 defmodule Hal.Rs485 do
+  @moduledoc """
+  Reads raw data from the SMA Sunny Remote Control RS485 bus and publishes
+  parsed values to MQTT under the `power/` topic prefix.
+
+  The Sunny Remote Control connects to a Sunny Island 6.0H via RS485.
+  This module taps the bus mid-stream, parsing the display update packets
+  sent from the Sunny Island to the remote control.
+
+  Packet framing: 0x7E 0xFF delimiter, 115200 baud.
+  """
+
   use Task, restart: :permanent
   require Logger
   alias Circuits.UART
-  alias Hal.State
-  alias Phoenix.PubSub
 
   @spec start_link(String.t()) :: {:ok, pid}
   def start_link(port) do
@@ -11,9 +20,9 @@ defmodule Hal.Rs485 do
     Task.start_link(__MODULE__, :init, [pid, port])
   end
 
-  @spec init(atom | pid | {atom, any} | {:via, atom, any}, binary) :: no_return
+  @spec init(pid, String.t()) :: no_return
   def init(pid, port) do
-    Logger.info("Reading from #{port}")
+    Logger.info("Hal.Rs485: reading from #{port}")
 
     :ok =
       UART.open(pid, port,
@@ -23,19 +32,23 @@ defmodule Hal.Rs485 do
         framing: {UART.Framing.Line, separator: <<0x7E, 0xFF>>}
       )
 
-    recv_packet()
+    recv_loop()
   end
 
-  @spec recv_packet :: no_return
-  def recv_packet do
+  defp recv_loop do
     receive do
-      {:circuits_uart, _pid, packet} -> packet |> parse_packet() |> put_state()
+      {:circuits_uart, _pid, packet} ->
+        packet
+        |> parse_packet()
+        |> publish_values()
     end
 
-    recv_packet()
+    recv_loop()
   end
 
-  @spec parse_packet(binary) :: list(tuple)
+  # Parse a display update packet from the Sunny Island.
+  # Header: 0x03 0x42 0x43 0x01 0x0B <col> <row> <4 bytes padding> <payload>
+  @spec parse_packet(binary) :: [{String.t(), any}]
   defp parse_packet(<<0x03, 0x42, 0x43, 0x01, 0x0B, _col, row, _pad::size(32), payload::binary>>) do
     payload
     |> :binary.split(<<0x00>>)
@@ -43,22 +56,19 @@ defmodule Hal.Rs485 do
     |> parse_payload(row)
   end
 
-  defp parse_packet(packet) do
-    Logger.info("Unrecognised packet: #{inspect(packet)}")
-    PubSub.broadcast(Hal.PubSub, "rs485_unkn", packet)
-    []
-  end
+  defp parse_packet(_packet), do: []
 
-  @spec parse_payload(binary, byte) :: list(tuple())
+  # Row 1: Generator engaged status
   defp parse_payload(<<0x03, "---", 0xA4, _::binary>>, 1), do: [{"genset/engaged", false}]
   defp parse_payload(<<0x03, "----", _::binary>>, 1), do: [{"genset/engaged", true}]
 
+  # Row 2: Generator output, charge/discharge flow, fan and genset request
   defp parse_payload(
          <<gen_kw::3-binary, "kW  ", flow, " ", charge::4-binary, "kW   ", fan::1-binary,
            gen_requested::1-binary>>,
          2
        ) do
-    {charge, _} =
+    {charge_kw, _} =
       charge
       |> String.trim()
       |> Float.parse()
@@ -68,13 +78,14 @@ defmodule Hal.Rs485 do
     [
       {"genset/output", gen_kw},
       {"genset/request", gen_requested != "o"},
-      {"flow/power", if(flow == 0x01, do: -1, else: 1) * abs(charge)},
+      {"flow/power", if(flow == 0x01, do: -1, else: 1) * abs(charge_kw)},
       {"flow/status", if(flow == 0x01, do: "charge", else: "discharge")},
-      {"load", charge},
+      {"load", charge_kw},
       {"battery/fan", fan != "o"}
     ]
   end
 
+  # Row 4: Battery charge (SOC%) and time
   defp parse_payload(
          <<charge::12-binary, h::2-binary, ":", m::2-binary, ":", s::2-binary>>,
          4
@@ -92,12 +103,12 @@ defmodule Hal.Rs485 do
 
   defp parse_payload(_payload, _row), do: []
 
-  @spec put_state(list({String.t(), any})) :: :ok
-  defp put_state([]), do: :ok
+  # Publish parsed values to MQTT under the power/ prefix
+  defp publish_values([]), do: :ok
 
-  defp put_state(tuples) do
-    tuples
-    |> Enum.map(fn {topic, val} -> {"power/#{topic}", val} end)
-    |> State.put_value(publish: true)
+  defp publish_values(values) do
+    Enum.each(values, fn {topic, value} ->
+      Tortoise.publish(Hal.MQTT, "power/#{topic}", "#{value}", qos: 0)
+    end)
   end
 end

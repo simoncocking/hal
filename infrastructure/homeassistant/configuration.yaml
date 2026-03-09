@@ -1,0 +1,142 @@
+# Home Assistant configuration for off-grid power system
+# Location: Tallarook, Victoria, Australia
+
+homeassistant:
+  name: Hal
+  latitude: -37.171914
+  longitude: 145.135366
+  elevation: 400
+  unit_system: metric
+  time_zone: Australia/Melbourne
+  currency: AUD
+
+# Enable the default set of integrations
+default_config:
+
+# MQTT broker running on Pi 1
+mqtt:
+  broker: 10.0.0.3
+  port: 1883
+
+  # --- Power system sensors (from Hal RS485 tap) ---
+  sensor:
+    - name: "Battery SOC"
+      state_topic: "power/battery/charge"
+      unit_of_measurement: "%"
+      device_class: battery
+      state_class: measurement
+      unique_id: hal_battery_soc
+
+    - name: "Charge/Discharge Power"
+      state_topic: "power/flow/power"
+      unit_of_measurement: "kW"
+      device_class: power
+      state_class: measurement
+      unique_id: hal_flow_power
+
+    - name: "Flow Status"
+      state_topic: "power/flow/status"
+      unique_id: hal_flow_status
+
+    - name: "House Load"
+      state_topic: "power/load"
+      unit_of_measurement: "kW"
+      device_class: power
+      state_class: measurement
+      unique_id: hal_house_load
+
+    - name: "Generator Output"
+      state_topic: "power/genset/output"
+      unit_of_measurement: "kW"
+      device_class: power
+      state_class: measurement
+      unique_id: hal_genset_output
+
+    - name: "Sunny Island Time"
+      state_topic: "power/time"
+      unique_id: hal_si_time
+
+    # --- Solar PV sensors (from SBFspot via MQTT) ---
+    # Adjust these topics to match your SBFspot MQTT configuration.
+    # Common SBFspot topics are shown below; verify against your
+    # actual MQTT dump and update as needed.
+    - name: "Solar PV Power"
+      state_topic: "power/pv/ac_watts"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      unique_id: hal_pv_ac_watts
+
+    # --- Solar hot water sensors (from ESP32) ---
+    - name: "SHW Manifold Temperature"
+      state_topic: "shw/manifold"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: hal_shw_manifold
+
+    - name: "SHW Tank Upper Temperature"
+      state_topic: "shw/tank_upper"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: hal_shw_tank_upper
+
+    - name: "SHW Tank Lower Temperature"
+      state_topic: "shw/tank_lower"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: hal_shw_tank_lower
+
+  # --- Binary sensors ---
+  binary_sensor:
+    - name: "Generator Engaged"
+      state_topic: "power/genset/engaged"
+      payload_on: "true"
+      payload_off: "false"
+      device_class: running
+      unique_id: hal_genset_engaged
+
+    - name: "Generator Requested"
+      state_topic: "power/genset/request"
+      payload_on: "true"
+      payload_off: "false"
+      unique_id: hal_genset_request
+
+    - name: "Battery Fan"
+      state_topic: "power/battery/fan"
+      payload_on: "true"
+      payload_off: "false"
+      device_class: running
+      unique_id: hal_battery_fan
+
+# Input numbers for SHW pump control algorithm tuning
+input_number:
+  shw_start_ratio:
+    name: SHW Pump Start Ratio
+    min: 1.1
+    max: 1.5
+    step: 0.05
+    initial: 1.30
+    mode: box
+
+  shw_stop_ratio:
+    name: SHW Pump Stop Ratio
+    min: 1.0
+    max: 1.4
+    step: 0.05
+    initial: 1.25
+    mode: box
+
+  shw_max_manifold:
+    name: SHW Max Manifold Temperature
+    min: 60
+    max: 95
+    step: 1
+    initial: 80
+    unit_of_measurement: "°C"
+    mode: box
+
+# Automations are in automations.yaml
+automation: !include automations.yaml

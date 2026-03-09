@@ -1,0 +1,74 @@
+version: "3.8"
+
+# Off-grid home automation stack for Raspberry Pi 5
+# Services: Home Assistant, InfluxDB, Telegraf, Grafana
+#
+# The MQTT broker (Mosquitto) runs on a separate Pi 1 at 10.0.0.3.
+# Update MQTT_BROKER below if this address changes.
+
+x-mqtt-broker: &mqtt-broker "10.0.0.3"
+
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    volumes:
+      - ./homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - TZ=Australia/Melbourne
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.7
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=changeme-influx
+      - DOCKER_INFLUXDB_INIT_ORG=hal
+      - DOCKER_INFLUXDB_INIT_BUCKET=power
+      - DOCKER_INFLUXDB_INIT_RETENTION=365d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=hal-influxdb-token
+
+  telegraf:
+    container_name: telegraf
+    image: telegraf:1.30
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - MQTT_BROKER=10.0.0.3
+      - INFLUX_TOKEN=hal-influxdb-token
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss:11.0.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=changeme-grafana
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
