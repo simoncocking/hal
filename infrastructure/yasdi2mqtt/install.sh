@@ -1,20 +1,23 @@
 #!/bin/bash
 # Install yasdi2mqtt on Pi 4 (Raspberry Pi OS / Debian)
 #
-# Prerequisites: git, cmake, build-essential
+# Prerequisites: git, cmake, gcc, make, openssl, libcjson, libpaho-mqtt
 #
 # Run as root or with sudo.
 
 set -euo pipefail
+
+echo "=== Installing build dependencies ==="
+apt install -y git gcc make cmake openssl libssl-dev libcjson1 libcjson-dev libpaho-mqtt1.3 libpaho-mqtt-dev
 
 echo "=== Installing YASDI library ==="
 cd /tmp
 if [ ! -d yasdi ]; then
   git clone https://github.com/konstantinblaesi/yasdi.git
 fi
-cd yasdi
-mkdir -p build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
+cd yasdi/sdk/projects/generic-cmake
+mkdir -p build-gcc && cd build-gcc
+cmake -DYASDI_DEBUG_OUTPUT=0 ..
 make -j$(nproc)
 make install
 ldconfig
@@ -25,10 +28,8 @@ if [ ! -d yasdi2mqtt ]; then
   git clone https://github.com/pkwagner/yasdi2mqtt.git
 fi
 cd yasdi2mqtt
-mkdir -p build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
-make -j$(nproc)
-make install
+make YASDI_PATH=/tmp/yasdi
+make YASDI_PATH=/tmp/yasdi install
 
 echo "=== Installing configuration files ==="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
