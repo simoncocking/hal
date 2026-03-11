@@ -1,9 +1,11 @@
 #!/bin/bash
-# Install yasdi2mqtt on Pi 4 (Raspberry Pi OS / Debian)
+# Install yasdi2mqtt on Raspberry Pi OS Buster (Debian 10).
 #
-# Builds all dependencies from source for compatibility with
-# older distros (e.g. Buster) where libpaho-mqtt and libcjson
-# are not available as packages.
+# Buster's repos are archived and lack libpaho-mqtt and libcjson
+# packages, so ALL dependencies are built from source.
+#
+# This script patches /etc/apt/sources.list to use the legacy
+# archive mirror if the standard repos are unreachable.
 #
 # Run as root or with sudo.
 
@@ -12,7 +14,16 @@ set -euo pipefail
 BUILD_DIR="/tmp/yasdi2mqtt-build"
 mkdir -p "$BUILD_DIR"
 
+# ----------------------------------------------------------
+# 0. Fix archived Buster repos if needed
+# ----------------------------------------------------------
+if grep -q 'raspbian.raspberrypi.org' /etc/apt/sources.list 2>/dev/null; then
+  echo "=== Patching apt sources for archived Buster repos ==="
+  sed -i 's|http://raspbian.raspberrypi.org/raspbian|http://legacy.raspbian.org/raspbian|g' /etc/apt/sources.list
+fi
+
 echo "=== Installing build toolchain ==="
+apt update || true  # don't fail on stale third-party repos
 apt install -y git gcc make cmake libssl-dev
 
 # ----------------------------------------------------------
@@ -39,13 +50,15 @@ if [ ! -d paho.mqtt.c ]; then
   git clone --depth 1 --branch v1.3.13 https://github.com/eclipse-paho/paho.mqtt.c.git
 fi
 cd paho.mqtt.c
-cmake -Bbuild -H. \
+mkdir -p build && cd build
+cmake \
   -DCMAKE_INSTALL_PREFIX=/usr/local \
   -DPAHO_WITH_SSL=TRUE \
   -DPAHO_BUILD_SAMPLES=FALSE \
-  -DPAHO_BUILD_DOCUMENTATION=FALSE
-cmake --build build/ -j$(nproc)
-cmake --build build/ --target install
+  -DPAHO_BUILD_DOCUMENTATION=FALSE \
+  ..
+make -j$(nproc)
+make install
 ldconfig
 
 # ----------------------------------------------------------
