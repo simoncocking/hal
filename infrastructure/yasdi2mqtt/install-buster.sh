@@ -11,6 +11,9 @@
 
 set -euo pipefail
 
+# Capture script directory before any cd commands
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 BUILD_DIR="/tmp/yasdi2mqtt-build"
 mkdir -p "$BUILD_DIR"
 
@@ -92,7 +95,6 @@ make YASDI_PATH="$BUILD_DIR/yasdi/sdk" install
 # 5. Install configuration files
 # ----------------------------------------------------------
 echo "=== Installing configuration files ==="
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cp "${SCRIPT_DIR}/yasdi.ini" /etc/yasdi.ini
 cp "${SCRIPT_DIR}/yasdi2mqtt.env" /etc/yasdi2mqtt.env
 cp "${SCRIPT_DIR}/yasdi2mqtt.service" /etc/systemd/system/yasdi2mqtt.service
