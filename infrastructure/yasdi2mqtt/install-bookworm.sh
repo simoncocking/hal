@@ -40,8 +40,8 @@ if [ ! -d yasdi2mqtt ]; then
   git clone https://github.com/pkwagner/yasdi2mqtt.git
 fi
 cd yasdi2mqtt
-make YASDI_PATH="$BUILD_DIR/yasdi"
-make YASDI_PATH="$BUILD_DIR/yasdi" install
+make YASDI_PATH="$BUILD_DIR/yasdi/sdk"
+make YASDI_PATH="$BUILD_DIR/yasdi/sdk" install
 
 # ----------------------------------------------------------
 # 3. Install configuration files
