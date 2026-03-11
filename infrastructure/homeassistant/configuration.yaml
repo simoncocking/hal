@@ -18,48 +18,194 @@ mqtt:
   broker: 10.0.0.3
   port: 1883
 
-  # --- Power system sensors (from Hal RS485 tap) ---
+  # ==========================================================
+  # Sunny Island sensors via yasdi2mqtt
+  # ==========================================================
+  # yasdi2mqtt publishes JSON to solar/sunny_island/<serial>
+  # with payload: {"timestamp":..., "sn":..., "values":{...}}
+  #
+  # The channel names below are the standard YASDI spot channel
+  # names for the SI 6.0H. Verify against actual output from
+  # yasdi2mqtt and adjust if your firmware exposes different names.
+  #
+  # NOTE: Once yasdi2mqtt is confirmed working, remove the
+  # "Legacy" sensors at the bottom of this section.
+
   sensor:
-    - name: "Battery SOC"
+    # --- Battery ---
+    - name: "SI Battery Voltage"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Ubat'] | default(0) }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+      state_class: measurement
+      unique_id: yasdi_si_ubat
+
+    - name: "SI Battery Current"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Ibat'] | default(0) }}"
+      unit_of_measurement: "A"
+      device_class: current
+      state_class: measurement
+      unique_id: yasdi_si_ibat
+
+    - name: "SI Battery SOC"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['BatSoC'] | default(0) }}"
+      unit_of_measurement: "%"
+      device_class: battery
+      state_class: measurement
+      unique_id: yasdi_si_batsoc
+
+    - name: "SI Battery Temperature"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['TmpBat'] | default(0) }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: yasdi_si_tmpbat
+
+    - name: "SI Battery Charge Cycles"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['BatChrg.Cnt'] | default(0) }}"
+      state_class: total_increasing
+      unique_id: yasdi_si_batchrgcnt
+
+    # --- AC output ---
+    - name: "SI AC Power"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Pac'] | default(0) }}"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      unique_id: yasdi_si_pac
+
+    - name: "SI AC Voltage"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Uac'] | default(0) }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+      state_class: measurement
+      unique_id: yasdi_si_uac
+
+    - name: "SI AC Current"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Iac'] | default(0) }}"
+      unit_of_measurement: "A"
+      device_class: current
+      state_class: measurement
+      unique_id: yasdi_si_iac
+
+    - name: "SI AC Frequency"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Fac'] | default(0) }}"
+      unit_of_measurement: "Hz"
+      device_class: frequency
+      state_class: measurement
+      unique_id: yasdi_si_fac
+
+    # --- Energy totals ---
+    - name: "SI Total Energy In"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['E-Total-In'] | default(0) }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      unique_id: yasdi_si_etotalin
+
+    - name: "SI Total Energy Out"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['E-Total-Out'] | default(0) }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      unique_id: yasdi_si_etotalout
+
+    # --- Generator ---
+    - name: "SI Generator Power"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Pac-Gen'] | default(0) }}"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      unique_id: yasdi_si_pacgen
+
+    # --- Device status ---
+    - name: "SI Operating Status"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Status'] | default('unknown') }}"
+      unique_id: yasdi_si_status
+
+    - name: "SI Device Temperature"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['TmpDev'] | default(0) }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: yasdi_si_tmpdev
+
+    - name: "SI Insulation Resistance"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Riso'] | default(0) }}"
+      unit_of_measurement: "kΩ"
+      state_class: measurement
+      unique_id: yasdi_si_riso
+
+    - name: "SI Operating Hours"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['h-Total'] | default(0) }}"
+      unit_of_measurement: "h"
+      state_class: total_increasing
+      unique_id: yasdi_si_htotal
+
+    - name: "SI Error Code"
+      state_topic: "solar/sunny_island/+"
+      value_template: "{{ value_json.values['Fehler'] | default(0) }}"
+      unique_id: yasdi_si_fehler
+
+    # ==========================================================
+    # Legacy sensors from Elixir RS485 tap (transitional)
+    # ==========================================================
+    # Remove this section once yasdi2mqtt is confirmed working.
+
+    - name: "Battery SOC (legacy)"
       state_topic: "power/battery/charge"
       unit_of_measurement: "%"
       device_class: battery
       state_class: measurement
       unique_id: hal_battery_soc
 
-    - name: "Charge/Discharge Power"
+    - name: "Charge/Discharge Power (legacy)"
       state_topic: "power/flow/power"
       unit_of_measurement: "kW"
       device_class: power
       state_class: measurement
       unique_id: hal_flow_power
 
-    - name: "Flow Status"
+    - name: "Flow Status (legacy)"
       state_topic: "power/flow/status"
       unique_id: hal_flow_status
 
-    - name: "House Load"
+    - name: "House Load (legacy)"
       state_topic: "power/load"
       unit_of_measurement: "kW"
       device_class: power
       state_class: measurement
       unique_id: hal_house_load
 
-    - name: "Generator Output"
+    - name: "Generator Output (legacy)"
       state_topic: "power/genset/output"
       unit_of_measurement: "kW"
       device_class: power
       state_class: measurement
       unique_id: hal_genset_output
 
-    - name: "Sunny Island Time"
+    - name: "Sunny Island Time (legacy)"
       state_topic: "power/time"
       unique_id: hal_si_time
 
     # --- Solar PV sensors (from SBFspot via MQTT) ---
     # Adjust these topics to match your SBFspot MQTT configuration.
-    # Common SBFspot topics are shown below; verify against your
-    # actual MQTT dump and update as needed.
     - name: "Solar PV Power"
       state_topic: "power/pv/ac_watts"
       unit_of_measurement: "W"
@@ -91,20 +237,21 @@ mqtt:
 
   # --- Binary sensors ---
   binary_sensor:
-    - name: "Generator Engaged"
+    # Legacy (remove once yasdi2mqtt confirmed)
+    - name: "Generator Engaged (legacy)"
       state_topic: "power/genset/engaged"
       payload_on: "true"
       payload_off: "false"
       device_class: running
       unique_id: hal_genset_engaged
 
-    - name: "Generator Requested"
+    - name: "Generator Requested (legacy)"
       state_topic: "power/genset/request"
       payload_on: "true"
       payload_off: "false"
       unique_id: hal_genset_request
 
-    - name: "Battery Fan"
+    - name: "Battery Fan (legacy)"
       state_topic: "power/battery/fan"
       payload_on: "true"
       payload_off: "false"

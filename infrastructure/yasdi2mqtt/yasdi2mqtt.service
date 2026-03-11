@@ -1,0 +1,25 @@
+[Unit]
+Description=YASDI to MQTT bridge for SMA Sunny Island
+Documentation=https://github.com/pkwagner/yasdi2mqtt
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/yasdi2mqtt.env
+ExecStart=/usr/local/bin/yasdi2mqtt
+Restart=always
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp
+PrivateTmp=true
+
+# Serial port access
+SupplementaryGroups=dialout
+
+[Install]
+WantedBy=multi-user.target
