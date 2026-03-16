@@ -16,346 +16,1248 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [],
   "panels": [
     {
-      "title": "Battery SOC",
-      "type": "gauge",
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 20 },
-              { "color": "yellow", "value": 40 },
-              { "color": "green", "value": 60 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "yellow",
+                "value": 40
+              },
+              {
+                "color": "green",
+                "value": 60
+              }
             ]
           },
-          "min": 0,
-          "max": 100,
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"charge\" and r.category == \"battery\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))"
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"charge\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Battery SOC",
+      "type": "gauge"
     },
     {
-      "title": "Charge / Discharge Power",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 2 },
-              { "color": "red", "value": 4 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
             ]
           },
           "unit": "kwatt"
-        }
+        },
+        "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"power\" and r.category == \"flow\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))"
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"power\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * -1.0}))",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Charge / Discharge Power",
+      "type": "stat"
     },
     {
-      "title": "Generator Output",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatt",
           "color": {
             "mode": "thresholds"
           },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "text", "value": null },
-              { "color": "orange", "value": 0.1 }
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "green",
+                "value": 1000
+              }
             ]
-          }
-        }
+          },
+          "unit": "watt"
+        },
+        "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"output\" and r.category == \"genset\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))"
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))",
+          "refId": "A"
         }
-      ]
-    },
-    {
+      ],
       "title": "Solar PV Power",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "watt",
-          "color": {
-            "mode": "thresholds"
-          },
+          "mappings": [
+            {
+              "options": {
+                "false": {
+                  "color": "text",
+                  "text": "OFF"
+                },
+                "true": {
+                  "color": "green",
+                  "text": "ON"
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "text", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "green", "value": 1000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           }
-        }
+        },
+        "overrides": []
       },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))"
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and (r.metric == \"engaged\" or r.metric == \"request\" ))\n  |> last()\n  |> keep(columns: [\"metric\", \"_value\"])",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "System Status",
+      "type": "stat"
     },
     {
-      "title": "Solar Hot Water",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 4 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "InfluxDB",
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"output\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))",
+          "refId": "A"
+        }
+      ],
+      "title": "Generator Output",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "celsius"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "manifold" },
-            "properties": [{ "id": "displayName", "value": "Manifold" }]
+            "matcher": {
+              "id": "byName",
+              "options": "_value manifold"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Manifold"
+              }
+            ]
           },
           {
-            "matcher": { "id": "byName", "options": "tank_upper" },
-            "properties": [{ "id": "displayName", "value": "Tank Upper" }]
+            "matcher": {
+              "id": "byName",
+              "options": "_value tank_upper"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tank Upper"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value tank_lower"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tank Lower"
+              }
+            ]
           }
         ]
       },
-      "targets": [
-        {
-          "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"solar_hot_water\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> group(columns: [\"sensor\"])"
-        }
-      ]
-    },
-    {
-      "title": "System Status",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "type": "value", "options": { "true": { "text": "ON", "color": "green" }, "false": { "text": "OFF", "color": "text" } } }
-          ]
-        }
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
       },
-      "targets": [
-        {
-          "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and (r.metric == \"engaged\" or r.metric == \"request\" or r.metric == \"fan\"))\n  |> last()\n  |> keep(columns: [\"metric\", \"category\", \"_value\"])"
-        }
-      ]
-    },
-    {
-      "title": "Battery SOC (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "custom": {
-            "fillOpacity": 20,
-            "lineWidth": 2,
-            "gradientMode": "scheme"
-          },
-          "color": {
-            "mode": "continuous-GrYlRd"
-          }
-        }
-      },
+      "id": 5,
       "options": {
-        "tooltip": { "mode": "single" }
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"charge\" and r.category == \"battery\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"solar_hot_water\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> group(columns: [\"sensor\"])",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Solar Hot Water",
+      "type": "stat"
     },
     {
-      "title": "Charge / Discharge Power (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatt",
-          "custom": {
-            "fillOpacity": 20,
-            "lineWidth": 2,
-            "gradientMode": "scheme"
-          },
           "color": {
             "mode": "continuous-GrYlRd"
-          }
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
         }
       },
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"power\" and r.category == \"flow\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"charge\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Battery SOC",
+      "type": "timeseries"
     },
     {
-      "title": "Solar Generation (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "watt",
-          "custom": {
-            "fillOpacity": 30,
-            "lineWidth": 2,
-            "gradientMode": "opacity"
+          "color": {
+            "mode": "continuous-GrYlRd"
           },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "Power",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": "InfluxDB",
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"power\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * -1.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Charge / Discharge Power",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
           "color": {
             "fixedColor": "yellow",
             "mode": "fixed"
-          }
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "PV power",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
         }
       },
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Solar Generation",
+      "type": "timeseries"
     },
     {
-      "title": "Solar Hot Water Temperatures (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "celsius",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
-            "lineWidth": 2
-          }
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "celsius"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "manifold" },
+            "matcher": {
+              "id": "byName",
+              "options": "value {host=\"24e5a7b7ac90\", sensor=\"manifold\", shw=\"shw\", site=\"tallarook\", topic=\"shw/manifold\"}"
+            },
             "properties": [
-              { "id": "displayName", "value": "Manifold" },
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              {
+                "id": "displayName",
+                "value": "Manifold"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "tank_upper" },
+            "matcher": {
+              "id": "byName",
+              "options": "value {host=\"24e5a7b7ac90\", sensor=\"tank_upper\", shw=\"shw\", site=\"tallarook\", topic=\"shw/tank_upper\"}"
+            },
             "properties": [
-              { "id": "displayName", "value": "Tank Upper" },
-              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              {
+                "id": "displayName",
+                "value": "Tank Upper"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "tank_lower" },
+            "matcher": {
+              "id": "byName",
+              "options": "value {host=\"24e5a7b7ac90\", sensor=\"tank_lower\", shw=\"shw\", site=\"tallarook\", topic=\"shw/tank_lower\"}"
+            },
             "properties": [
-              { "id": "displayName", "value": "Tank Lower" },
-              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+              {
+                "id": "displayName",
+                "value": "Tank Lower"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
             ]
           }
         ]
       },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"solar_hot_water\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"solar_hot_water\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Solar Hot Water Temperatures",
+      "type": "timeseries"
     },
     {
-      "title": "Generator Runtime (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatt",
-          "custom": {
-            "fillOpacity": 40,
-            "lineWidth": 2
-          },
           "color": {
             "fixedColor": "orange",
             "mode": "fixed"
-          }
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "Genset output",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
         }
       },
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"output\" and r.category == \"genset\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"output\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Generator Output",
+      "type": "timeseries"
     },
     {
-      "title": "House Load (24h)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatt",
-          "custom": {
-            "fillOpacity": 20,
-            "lineWidth": 2,
-            "gradientMode": "opacity"
-          },
           "color": {
             "fixedColor": "purple",
             "mode": "fixed"
-          }
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "House load",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
         }
       },
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"load\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)"
+          "query": "load = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"load\")\n  |> map(fn: (r) => ({_time: r._time, _field: \"load\", _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\npv = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> map(fn: (r) => ({_time: r._time, _field: \"pv\", _value: float(v: r._value) / 1000.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\nunion(tables: [load, pv])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time, _value: (if exists r.load then r.load else 0.0) + (if exists r.pv then r.pv else 0.0)}))",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "True House Load",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "super-light-blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "displayName": "Voltage",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              }
+            ]
+          },
+          "unit": "volt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": "InfluxDB",
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"volts\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Grid Voltage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "light-green",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "displayName": "Frequency",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              }
+            ]
+          },
+          "unit": "hertz"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": "InfluxDB",
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"frequency\")\n  |> map(fn: (r) => ({r with _value: float(v: r._value)}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Grid Frequency",
+      "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["power", "solar", "off-grid"],
+  "tags": [
+    "power",
+    "solar",
+    "off-grid"
+  ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now/d",
     "to": "now"
   },
+  "timeRangeUpdatedDuringEditOrView": false,
   "timepicker": {},
   "timezone": "Australia/Melbourne",
   "title": "Power System Overview",
   "uid": "hal-power-system",
-  "version": 1
+  "version": 7,
+  "weekStart": ""
 }

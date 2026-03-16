@@ -4,45 +4,51 @@
 # Replicates the NodeRED SHW pump logic:
 # - Start pump when manifold >= min(tank_upper * start_ratio, max_manifold)
 # - Stop pump when manifold <= tank_upper * stop_ratio
-# The pump is tasmota_418815 relay 1 (Solar pump).
+# The pump is switch.tasmota_4 (483FDA418815 relay 0).
 
-- id: shw_pump_start
-  alias: "SHW: Start circulation pump"
-  description: "Start solar hot water pump when manifold is hot enough relative to tank"
+- id: shw_pump_control
+  alias: "SHW: Circulation pump control"
+  description: >-
+    Evaluate pump state on each manifold temperature update.
+    Start when manifold >= min(tank_upper * start_ratio, max_manifold) and pump is off.
+    Stop when manifold <= tank_upper * stop_ratio and pump is on.
+    Between thresholds (deadband), do nothing — pump stays in its current state.
+  mode: single
   trigger:
     - platform: state
-      entity_id: sensor.shw_manifold_temperature
-  condition:
-    - condition: template
-      value_template: >-
-        {% set manifold = states('sensor.shw_manifold_temperature') | float(0) %}
-        {% set tank_upper = states('sensor.shw_tank_upper_temperature') | float(0) %}
-        {% set start_ratio = states('input_number.shw_start_ratio') | float(1.30) %}
-        {% set max_temp = states('input_number.shw_max_manifold') | float(80) %}
-        {% set threshold = [tank_upper * start_ratio, max_temp] | min %}
-        {{ manifold >= threshold and manifold > 0 and tank_upper > 0 }}
+      entity_id: sensor.shw_manifold_average
   action:
-    - service: switch.turn_on
-      target:
-        entity_id: switch.tasmota_418815_1
-
-- id: shw_pump_stop
-  alias: "SHW: Stop circulation pump"
-  description: "Stop solar hot water pump when manifold cools below threshold"
-  trigger:
-    - platform: state
-      entity_id: sensor.shw_manifold_temperature
-  condition:
-    - condition: template
-      value_template: >-
-        {% set manifold = states('sensor.shw_manifold_temperature') | float(0) %}
-        {% set tank_upper = states('sensor.shw_tank_upper_temperature') | float(0) %}
-        {% set stop_ratio = states('input_number.shw_stop_ratio') | float(1.25) %}
-        {{ manifold <= tank_upper * stop_ratio and tank_upper > 0 }}
-  action:
-    - service: switch.turn_off
-      target:
-        entity_id: switch.tasmota_418815_1
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: switch.tasmota_4
+              state: "off"
+            - condition: template
+              value_template: >-
+                {% set manifold = states('sensor.shw_manifold_average') | float(0) %}
+                {% set tank_upper = states('sensor.shw_tank_upper_average') | float(0) %}
+                {% set start_ratio = states('input_number.shw_start_ratio') | float(1.30) %}
+                {% set max_temp = states('input_number.shw_max_manifold') | float(80) %}
+                {% set threshold = [tank_upper * start_ratio, max_temp] | min %}
+                {{ manifold >= threshold and manifold > 0 and tank_upper > 0 }}
+          sequence:
+            - service: switch.turn_on
+              target:
+                entity_id: switch.tasmota_4
+        - conditions:
+            - condition: state
+              entity_id: switch.tasmota_4
+              state: "on"
+            - condition: template
+              value_template: >-
+                {% set manifold = states('sensor.shw_manifold_average') | float(0) %}
+                {% set tank_upper = states('sensor.shw_tank_upper_average') | float(0) %}
+                {% set stop_ratio = states('input_number.shw_stop_ratio') | float(1.25) %}
+                {{ manifold <= tank_upper * stop_ratio and tank_upper > 0 }}
+          sequence:
+            - service: switch.turn_off
+              target:
+                entity_id: switch.tasmota_4
 
 # ============================================================
 # Water Transfer Pump Auto-Off (30 minute safety timer)
@@ -55,14 +61,14 @@
   description: "Safety timer to prevent transfer pump running indefinitely"
   trigger:
     - platform: state
-      entity_id: switch.tasmota_418815_2
+      entity_id: switch.tasmota_tasmota2_3
       to: "on"
       for:
         minutes: 30
   action:
     - service: switch.turn_off
       target:
-        entity_id: switch.tasmota_418815_2
+        entity_id: switch.tasmota_tasmota2_3
 
 # ============================================================
 # Solar-Aware Schedulers
@@ -83,7 +89,7 @@
   action:
     - service: switch.turn_on
       target:
-        entity_id: switch.tasmota_cb1e76
+        entity_id: switch.tasmota_3
 
 - id: beer_chiller_off
   alias: "Schedule: Beer chiller off"
@@ -97,7 +103,7 @@
   action:
     - service: switch.turn_off
       target:
-        entity_id: switch.tasmota_cb1e76
+        entity_id: switch.tasmota_3
 
 # Desk light: on at dusk (sun elevation < 8°), off at 23:00
 - id: desk_light_on
@@ -114,7 +120,7 @@
   action:
     - service: switch.turn_on
       target:
-        entity_id: switch.tasmota_f9ecee
+        entity_id: switch.tasmota_8
 
 - id: desk_light_off
   alias: "Schedule: Desk light off"
@@ -124,7 +130,7 @@
   action:
     - service: switch.turn_off
       target:
-        entity_id: switch.tasmota_f9ecee
+        entity_id: switch.tasmota_8
 
 # Stair lights: on at dusk (sun elevation < 8°), off at 23:00
 - id: stair_lights_on
@@ -141,7 +147,7 @@
   action:
     - service: switch.turn_on
       target:
-        entity_id: switch.tasmota_e8d958_2
+        entity_id: switch.tasmota_tasmota2
 
 - id: stair_lights_off
   alias: "Schedule: Stair lights off"
@@ -151,7 +157,7 @@
   action:
     - service: switch.turn_off
       target:
-        entity_id: switch.tasmota_e8d958_2
+        entity_id: switch.tasmota_tasmota2
 
 # ============================================================
 # 433MHz Bedroom Button (via NinjaCape)
@@ -168,7 +174,7 @@
   action:
     - service: switch.toggle
       target:
-        entity_id: switch.tasmota_fab09f
+        entity_id: switch.tasmota_6
 
 # ============================================================
 # Tasmota Switch Masquerade

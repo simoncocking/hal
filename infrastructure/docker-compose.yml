@@ -18,6 +18,7 @@ services:
     volumes:
       - ./homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
     environment:
       - TZ=Australia/Melbourne
 
@@ -33,11 +34,11 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=changeme-influx
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
       - DOCKER_INFLUXDB_INIT_ORG=hal
       - DOCKER_INFLUXDB_INIT_BUCKET=power
       - DOCKER_INFLUXDB_INIT_RETENTION=365d
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=hal-influxdb-token
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
 
   telegraf:
     container_name: telegraf
@@ -49,7 +50,22 @@ services:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     environment:
       - MQTT_BROKER=10.0.0.3
-      - INFLUX_TOKEN=hal-influxdb-token
+      - INFLUX_TOKEN=${INFLUXDB_TOKEN}
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:10.11
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASS}
+      - MYSQL_DATABASE=${MARIADB_SBFSPOT_DB_NAME}
+      - MYSQL_USER=${MARIADB_SBFSPOT_USER}
+      - MYSQL_PASSWORD=${MARIADB_SBFSPOT_PASS}
+      - TZ=Australia/Melbourne
 
   grafana:
     container_name: grafana
@@ -63,7 +79,7 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=changeme-grafana
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_SERVER_ROOT_URL=http://localhost:3000
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
@@ -72,3 +88,4 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  mariadb-data:
