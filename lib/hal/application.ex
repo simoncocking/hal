@@ -10,10 +10,10 @@ defmodule Hal.Application do
 
     children = [
       # MQTT connection via Tortoise
-      {Tortoise.Connection,
+      {Tortoise311.Connection,
        client_id: Hal.MQTT,
-       server: {Tortoise.Transport.Tcp, host: String.to_charlist(mqtt_broker), port: 1883},
-       handler: {Tortoise.Handler.Default, []}},
+       server: {Tortoise311.Transport.Tcp, host: String.to_charlist(mqtt_broker), port: 1883},
+       handler: {Tortoise311.Handler.Default, []}},
 
       # RS485 data acquisition from Sunny Island remote control bus
       {Hal.Rs485, rs485_port}

@@ -1,0 +1,20 @@
+[Unit]
+Description=Hal RS485 power monitoring
+After=network.target mosquitto.service
+Wants=network.target
+
+[Service]
+Type=exec
+User=simon
+Group=simon
+WorkingDirectory=/opt/hal
+ExecStart=/opt/hal/bin/hal start
+ExecStop=/opt/hal/bin/hal stop
+Restart=on-failure
+RestartSec=5
+
+# Allow access to serial port (simon is in dialout group)
+SupplementaryGroups=dialout
+
+[Install]
+WantedBy=multi-user.target
