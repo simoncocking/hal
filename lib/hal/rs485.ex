@@ -37,24 +37,21 @@ defmodule Hal.Rs485 do
 
   defp recv_loop do
     receive do
-      {:circuits_uart, _pid, packet} ->
-        packet
-        |> parse_packet()
-        |> publish_values()
+      {:circuits_uart, _pid, packet} -> packet |> parse_packet() |> Enum.each(&publish/1)
     end
 
     recv_loop()
   end
 
+  # Publish parsed values to MQTT under the power/ pref
+  defp publish({topic, value}),
+    do: Tortoise311.publish(Hal.MQTT, "power/#{topic}", "#{value}", qos: 0)
+
   # Parse a display update packet from the Sunny Island.
   # Header: 0x03 0x42 0x43 0x01 0x0B <col> <row> <4 bytes padding> <payload>
   @spec parse_packet(binary) :: [{String.t(), any}]
-  defp parse_packet(<<0x03, 0x42, 0x43, 0x01, 0x0B, _col, row, _pad::size(32), payload::binary>>) do
-    payload
-    |> :binary.split(<<0x00>>)
-    |> List.first()
-    |> parse_payload(row)
-  end
+  defp parse_packet(<<0x03, 0x42, 0x43, 0x01, 0x0B, _col, row, _pad::size(32), payload::binary>>),
+    do: payload |> :binary.split(<<0x00>>) |> List.first() |> parse_payload(row)
 
   defp parse_packet(_packet), do: []
 
@@ -68,11 +65,7 @@ defmodule Hal.Rs485 do
            gen_requested::1-binary>>,
          2
        ) do
-    {charge_kw, _} =
-      charge
-      |> String.trim()
-      |> Float.parse()
-
+    {charge_kw, _} = charge |> String.trim() |> Float.parse()
     {gen_kw, _} = Float.parse(gen_kw)
 
     [
@@ -90,25 +83,9 @@ defmodule Hal.Rs485 do
          <<charge::12-binary, h::2-binary, ":", m::2-binary, ":", s::2-binary>>,
          4
        ) do
-    {charge, _} =
-      charge
-      |> String.trim()
-      |> Integer.parse()
-
-    [
-      {"battery/charge", charge},
-      {"time", "#{h}:#{m}:#{s}"}
-    ]
+    {charge, _} = charge |> String.trim() |> Integer.parse()
+    [{"battery/charge", charge}, {"time", "#{h}:#{m}:#{s}"}]
   end
 
   defp parse_payload(_payload, _row), do: []
-
-  # Publish parsed values to MQTT under the power/ prefix
-  defp publish_values([]), do: :ok
-
-  defp publish_values(values) do
-    Enum.each(values, fn {topic, value} ->
-      Tortoise.publish(Hal.MQTT, "power/#{topic}", "#{value}", qos: 0)
-    end)
-  end
 end
