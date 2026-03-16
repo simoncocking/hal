@@ -10,6 +10,6 @@ datasources:
       organization: hal
       defaultBucket: power
     secureJsonData:
-      token: hal-influxdb-token
+      token: $__env{INFLUXDB_TOKEN}
     isDefault: true
     editable: true
