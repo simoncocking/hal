@@ -55,10 +55,10 @@ def main():
     query_api = client.query_api()
 
     # Step 1: Read all string-typed sunny_boy data
-    # Telegraf data has 'site' tag; migrated data has 'source' tag
+    # Telegraf data has site="tallarook" tag; migrated data has source="migration" tag
     query = f'''from(bucket: "{INFLUX_BUCKET}")
   |> range(start: {START}, stop: {STOP})
-  |> filter(fn: (r) => r._measurement == "sunny_boy" and exists r.site)
+  |> filter(fn: (r) => r._measurement == "sunny_boy" and r.site == "tallarook")
 '''
     print(f"Reading string-typed sunny_boy data ({START} to {STOP})...")
     tables = query_api.query(query, org=INFLUX_ORG)

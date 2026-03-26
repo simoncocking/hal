@@ -74,22 +74,36 @@ COLUMN_MAP = {
 }
 
 
-def get_row_count(cursor):
+def get_row_count(cursor, since_epoch=None):
     """Get total SpotData rows for progress reporting."""
-    cursor.execute("SELECT COUNT(*) FROM SpotData")
+    if since_epoch:
+        cursor.execute("SELECT COUNT(*) FROM SpotData WHERE TimeStamp >= %s", (since_epoch,))
+    else:
+        cursor.execute("SELECT COUNT(*) FROM SpotData")
     return cursor.fetchone()[0]
 
 
-def fetch_spotdata(cursor, batch_size=5000):
+def fetch_spotdata(cursor, batch_size=5000, since_epoch=None):
     """Yield SpotData rows in batches."""
-    cursor.execute("""
-        SELECT TimeStamp, Serial,
-               Pac1, Iac1, Uac1,
-               Pdc1, Pdc2, Idc1, Idc2, Udc1, Udc2,
-               EToday, ETotal, Temperature
-        FROM SpotData
-        ORDER BY TimeStamp ASC
-    """)
+    if since_epoch:
+        cursor.execute("""
+            SELECT TimeStamp, Serial,
+                   Pac1, Iac1, Uac1,
+                   Pdc1, Pdc2, Idc1, Idc2, Udc1, Udc2,
+                   EToday, ETotal, Temperature
+            FROM SpotData
+            WHERE TimeStamp >= %s
+            ORDER BY TimeStamp ASC
+        """, (since_epoch,))
+    else:
+        cursor.execute("""
+            SELECT TimeStamp, Serial,
+                   Pac1, Iac1, Uac1,
+                   Pdc1, Pdc2, Idc1, Idc2, Udc1, Udc2,
+                   EToday, ETotal, Temperature
+            FROM SpotData
+            ORDER BY TimeStamp ASC
+        """)
 
     batch = []
     for row in cursor:
@@ -163,6 +177,11 @@ def main():
     parser.add_argument("--influx-token", default=INFLUX_TOKEN)
     parser.add_argument("--influx-org", default=INFLUX_ORG)
     parser.add_argument("--influx-bucket", default=INFLUX_BUCKET)
+    parser.add_argument(
+        "--since",
+        default=None,
+        help="Only migrate rows after this UTC datetime, e.g. '2026-03-13 00:00:00'",
+    )
     args = parser.parse_args()
 
     # Connect to MySQL
@@ -176,7 +195,13 @@ def main():
     )
     cursor = conn.cursor()
 
-    total_rows = get_row_count(cursor)
+    since_epoch = None
+    if args.since:
+        since_dt = datetime.strptime(args.since, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        since_epoch = int(since_dt.timestamp())
+        print(f"Filtering rows since {args.since} UTC (epoch {since_epoch})")
+
+    total_rows = get_row_count(cursor, since_epoch)
     print(f"SpotData has {total_rows:,} rows to migrate")
 
     if total_rows == 0:
@@ -196,7 +221,7 @@ def main():
     points_written = 0
     start_time = datetime.now()
 
-    for batch in fetch_spotdata(cursor, args.batch_size):
+    for batch in fetch_spotdata(cursor, args.batch_size, since_epoch):
         all_points = []
         for row in batch:
             all_points.extend(row_to_points(row))
