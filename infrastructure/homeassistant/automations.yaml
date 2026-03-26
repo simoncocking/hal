@@ -167,6 +167,8 @@
 
 - id: bedroom_button_toggle
   alias: "Button: Bedroom light toggle (433MHz)"
+  mode: single
+  max_exceeded: silent
   trigger:
     - platform: mqtt
       topic: "ninjaCape/input/11"
@@ -175,6 +177,8 @@
     - service: switch.toggle
       target:
         entity_id: switch.tasmota_6
+    - delay:
+        seconds: 1
 
 # ============================================================
 # Tasmota Switch Masquerade
