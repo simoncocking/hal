@@ -455,7 +455,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "fixedColor": "green",
+            "mode": "fixed"
           },
           "custom": {
             "axisBorderShow": false,
@@ -466,7 +467,7 @@
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 20,
-            "gradientMode": "scheme",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -474,6 +475,9 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -489,6 +493,7 @@
               "mode": "off"
             }
           },
+          "displayName": "State of charge",
           "mappings": [],
           "max": 100,
           "min": 0,
@@ -496,12 +501,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "transparent",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -547,7 +548,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "fixedColor": "light-blue",
+            "mode": "fixed"
           },
           "custom": {
             "axisBorderShow": false,
@@ -557,8 +559,8 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "scheme",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -589,10 +591,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -915,16 +913,13 @@
           },
           "displayName": "Genset output",
           "mappings": [],
+          "max": 10,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -1099,6 +1094,7 @@
           },
           "displayName": "Voltage",
           "mappings": [],
+          "min": 200,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1121,11 +1117,7 @@
       "id": 13,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "min",
-            "max"
-          ],
+          "calcs": ["mean", "min", "max"],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -1189,8 +1181,11 @@
               "mode": "area"
             }
           },
+          "decimals": 1,
           "displayName": "Frequency",
           "mappings": [],
+          "max": 52,
+          "min": 48,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1213,11 +1208,7 @@
       "id": 14,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "min",
-            "max"
-          ],
+          "calcs": ["mean", "min", "max"],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -1239,13 +1230,9 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "10s",
+  "refresh": "1m",
   "schemaVersion": 39,
-  "tags": [
-    "power",
-    "solar",
-    "off-grid"
-  ],
+  "tags": ["power", "solar", "off-grid"],
   "templating": {
     "list": []
   },
@@ -1258,6 +1245,6 @@
   "timezone": "Australia/Melbourne",
   "title": "Power System Overview",
   "uid": "hal-power-system",
-  "version": 7,
+  "version": 13,
   "weekStart": ""
 }
