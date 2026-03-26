@@ -210,7 +210,7 @@
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value)}))\n  |> group()\n  |> last()",
+          "query": "from(bucket: \"power\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> toFloat()\n  |> group()\n  |> last()",
           "refId": "A"
         }
       ],
@@ -713,7 +713,7 @@
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value)}))\n  |> group()\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> toFloat()\n  |> group()\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
@@ -1042,7 +1042,7 @@
       "targets": [
         {
           "datasource": "InfluxDB",
-          "query": "load = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"load\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: r._time, _field: \"load\", _value: float(v: r._value)}))\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\npv = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: r._time, _field: \"pv\", _value: float(v: r._value) / 1000.0}))\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\nunion(tables: [load, pv])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time, _value: (if exists r.load then r.load else 0.0) + (if exists r.pv then r.pv else 0.0)}))",
+          "query": "load = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_island\" and r.metric == \"load\")\n  |> toFloat()\n  |> group()\n  |> map(fn: (r) => ({_time: r._time, _field: \"load\", _value: r._value}))\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\npv = from(bucket: \"power\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sunny_boy\" and r.metric == \"ac_watts\")\n  |> toFloat()\n  |> group()\n  |> map(fn: (r) => ({_time: r._time, _field: \"pv\", _value: r._value / 1000.0}))\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\nunion(tables: [load, pv])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time, _value: (if exists r.load then r.load else 0.0) + (if exists r.pv then r.pv else 0.0)}))",
           "refId": "A"
         }
       ],
@@ -1245,6 +1245,6 @@
   "timezone": "Australia/Melbourne",
   "title": "Power System Overview",
   "uid": "hal-power-system",
-  "version": 13,
+  "version": 14,
   "weekStart": ""
 }
