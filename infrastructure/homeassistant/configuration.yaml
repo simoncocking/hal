@@ -2,13 +2,20 @@
 # Location: Tallarook, Victoria, Australia
 
 homeassistant:
-  name: Hal
+  name: Home
   latitude: -37.171914
   longitude: 145.135366
   elevation: 400
   unit_system: metric
   time_zone: Australia/Melbourne
   currency: AUD
+
+zone:
+  - name: Home
+    latitude: -37.173350
+    longitude: 145.135554
+    radius: 400
+    icon: mdi:home
 
 # Enable the default set of integrations
 default_config:
