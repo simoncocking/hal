@@ -52,34 +52,38 @@
   - service: switch.turn_off
     target:
       entity_id: switch.tasmota_tasmota2_3
-- id: beer_chiller_on
-  alias: 'Schedule: Beer chiller on (solar)'
-  trigger:
-  - platform: numeric_state
-    entity_id: sun.sun
-    attribute: elevation
-    above: 10
-  condition:
-  - condition: time
-    after: '15:00:00'
-    before: '22:00:00'
-  action:
-  - service: switch.turn_on
-    target:
-      entity_id: switch.tasmota_3
-- id: beer_chiller_off
-  alias: 'Schedule: Beer chiller off'
+- id: beer_chiller_schedule
+  alias: 'Schedule: Beer chiller (15:00-21:00)'
   trigger:
   - platform: time
-    at: '22:00:00'
-  - platform: numeric_state
-    entity_id: sun.sun
-    attribute: elevation
-    below: 10
+    at: '15:00:00'
+    id: scheduled_on
+  - platform: state
+    entity_id: person.simon_cocking
+    to: home
+    id: arrived_home
+  - platform: time
+    at: '21:00:00'
+    id: scheduled_off
   action:
-  - service: switch.turn_off
-    target:
-      entity_id: switch.tasmota_3
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: scheduled_off
+      sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.tasmota_3
+    default:
+    - condition: state
+      entity_id: person.simon_cocking
+      state: home
+    - condition: time
+      after: '15:00:00'
+      before: '21:00:00'
+    - service: switch.turn_on
+      target:
+        entity_id: switch.tasmota_3
 - id: desk_light_on
   alias: 'Schedule: Desk light on at dusk'
   trigger:
